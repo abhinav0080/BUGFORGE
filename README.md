@@ -1,57 +1,84 @@
-# BugForge
+# BUGFORGE
 
-A functional security-learning MVP built with React, Vinext, and TypeScript. The dark workspace opens on the dashboard; `/welcome` contains the product introduction.
+BUGFORGE is an interactive web application for learning foundational web security concepts through controlled, fictional exercises. Learners can inspect simulated HTTP responses, compare access-control behavior, document findings, and track progress across sessions.
 
-## Working features
+The application uses React and TypeScript for its interface, server-side API routes for exercise validation, and Cloudflare D1 for per-user persistence.
 
-- Platform-managed ChatGPT sign-in; all learner writes require authenticated identity.
-- A seven-step, explicitly self-verified local environment checklist with an intentional skip option.
-- Eight short interactive concepts covering HTTP, methods/statuses, headers/cookies/sessions, parameters/forms, JSON/APIs, authorization, browser storage/DOM, and origins.
-- Three deterministic built-in labs: HTTP comparison, access control, and reflected-input classification. These simulate HTTP responses using fictional data; they never contact target hosts or execute submitted markup.
-- Backend evidence checks, recorded attempts/hints, immutable verification snapshots, and idempotent XP awards.
-- Rule-based Forge guidance, visibly labeled as guided mode. No live model is configured.
-- Finding creation, editable report drafts, Markdown export, a fictional scope interface, endpoint investigation statuses, and activity/progress views.
-- Per-user durable D1 storage with prepared statements and optimistic revisions to prevent lost concurrent writes.
+## Features
 
-## Start locally
+- **Structured learning:** Eight concise lessons covering HTTP, sessions, APIs, authorization, browser behavior, and related concepts.
+- **Interactive exercises:** Three self-contained labs for HTTP request comparison, access-control analysis, and reflected-input classification.
+- **Evidence-based completion:** Exercise submissions are checked against recorded interactions before credit is awarded. Verified evidence is retained for reports.
+- **Progress tracking:** Account-specific progress, history, hints, and completed labs persist in D1.
+- **Findings and reports:** Create findings, edit report drafts, and export Markdown.
+- **Guided help:** A rule-based mentor responds to common learning questions. This release does not use a live AI model.
+- **Consistency and safety:** Revision checks help prevent conflicting writes, while input validation and authenticated API access protect application state.
 
-Use Node 22.13 or newer. Install the locked packages with `npm ci`. Run `npm run build`, then apply the generated migration to the local D1 database:
+All exercise endpoints, accounts, and responses are simulated. BUGFORGE does not send requests to third-party targets or execute injected scripts.
 
-```sh
+## Technology
+
+- React, TypeScript, Vinext, and Vite
+- Server-side API routes
+- Cloudflare Workers and D1
+- Drizzle ORM
+- Node.js test tooling
+
+## Run locally
+
+**Requirements:** Node.js 22.13 or later and npm.
+
+```bash
+npm ci
+npm run build
+```
+
+Initialize the local D1 database:
+
+```bash
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_mixed_quentin_quire.sql
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-The development server prints its address. Local sign-in is simulated only on loopback and is excluded from production. Hosted identity is supplied by the Sites dispatcher. Do not expose the development server to the internet.
+Open the local URL printed in the terminal. Local sign-in is simulated on loopback only; the hosted application relies on platform-provided authentication. Do not expose the local development server to the public internet.
+
+## Project structure
+
+| Path | Responsibility |
+| --- | --- |
+| `app/application.tsx` | User flows and workspace |
+| `app/dashboard.tsx` | Dashboard presentation |
+| `app/api/state/route.ts` | Authenticated API, input validation, and state updates |
+| `lib/curriculum.ts` | Lessons and lab definitions |
+| `lib/engine.ts` | Simulation rules, evidence checks, and progression |
+| `lib/mentor.ts` | Rule-based learning guidance |
+| `db/store.ts` | Per-user database operations and revision checks |
+| `db/schema.ts`, `drizzle/` | Database schema and migrations |
 
 ## Verification
 
-- `node tests/engine.test.cjs`: ten focused checks of setup gates, evidence validation, hint penalties, XP idempotency, immutable report evidence, state immutability, and mentor behavior.
-- `node tests/api.test.cjs`: eleven integration checks against the local server on port 5173, including anonymous/spoofed auth rejection, revision conflicts, concurrent writes, persistence, credential filtering, and account scope.
-- `npx tsc --noEmit`: TypeScript validation.
-- `npm run build`: production Worker and assets.
+The repository includes tests for exercise rules and API behavior.
 
-The API test uses only the loopback development account. Its progress is separate from hosted users. The migration was tested locally; production migration application is owned by Sites.
+```bash
+node tests/engine.test.cjs
+node tests/api.test.cjs
+npx tsc --noEmit
+npm run build
+```
 
-No browser interaction or screenshot QA was requested. WebMCP tools are feature-detected for reading progress and opening a section; execution in a supporting browser was not available for validation.
+API integration tests require a running local development server on port 5173. Test and production accounts use separate storage contexts. These commands are provided for local verification; passing results should be confirmed in the target environment.
 
-## Architecture
+## Current scope
 
-- `app/application.tsx`: workspace and user flows.
-- `app/dashboard.tsx`: dashboard composition.
-- `lib/curriculum.ts`: extensible lesson and lab catalog with official resource links.
-- `lib/engine.ts`: pure scenario simulation, evidence validation, and progression logic.
-- `lib/mentor.ts`: server-side provider interface and honest curated fallback.
-- `app/api/state/route.ts`: authenticated, validated action boundary.
-- `db/store.ts`: per-user storage adapter; a PostgreSQL-backed adapter can replace D1 for a future hosting architecture.
-- `db/schema.ts` and `drizzle/`: schema and immutable migration history.
+BUGFORGE currently includes three simulated labs. It does **not** provide Docker-backed per-user lab environments, live Burp/browser integrations, model-powered tutoring, screen analysis, or real-world vulnerability scanning. Further labs and instructor-facing features are potential extensions, not part of this release.
 
-The local build metadata copier uses bounded file copying for compatibility with restricted Windows workspaces. Site authentication and deployment integration are preserved.
+Use the exercises only as training simulations. Any testing of real systems requires authorization and adherence to the applicable scope and policy.
 
-## Deferred capabilities
+## Development notes
 
-Per-user Docker containers, real Burp/browser integrations, live model-backed mentoring, screen analysis, advanced lab collections, instructor mode, and open-ended realistic assessments are not implemented. Forge Vision is explicitly off and does not capture any screen. Docker-based apps are installed separately following the official local setup instructions shown in Tools.
-
-Higher progression ranks are planned with future lab collections. The three current labs allow up to 300 XP total; hints lower the available award.
-
-All scope hostnames and program comparisons are fictional examples, not live testing authorization. Real programs require reading and following their actual current policies.
+The project uses a framework starter and platform-managed authentication/deployment integration. Third-party dependencies and their licenses remain subject to their respective notices.
